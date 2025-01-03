@@ -10,17 +10,23 @@ function convertFile() {
   const file = fileInput.files[0];
   const reader = new FileReader();
 
-  reader.onload = function(event) {
-    const binaryData = event.target.result; // File content as binary
+  // Read the file as an ArrayBuffer for binary data
+  reader.onload = function (event) {
+    const arrayBuffer = event.target.result;
+    const byteArray = new Uint8Array(arrayBuffer);
+    const binaryData = Array.from(byteArray)
+      .map(byte => byte.toString(2).padStart(8, '0')) // Convert each byte to binary
+      .join(''); // Combine into one long binary string
+
     const encodedData = encodeBinary(binaryData);
     outputBox.value = encodedData;
   };
 
-  reader.onerror = function() {
+  reader.onerror = function () {
     alert('Error reading file.');
   };
 
-  reader.readAsBinaryString(file);
+  reader.readAsArrayBuffer(file);
 }
 
 function encodeBinary(data) {
@@ -28,17 +34,13 @@ function encodeBinary(data) {
   const zeroMapping = ['A', 'B', 'C', 'D'];
   const oneMapping = ['Q', 'K', 'L', 'O'];
 
-  for (const char of data) {
-    const binary = char.charCodeAt(0).toString(2).padStart(8, '0'); // Convert to binary
-    for (const bit of binary) {
-      if (bit === '0') {
-        encoded += zeroMapping[Math.floor(Math.random() * zeroMapping.length)];
-      } else {
-        encoded += oneMapping[Math.floor(Math.random() * oneMapping.length)];
-      }
+  for (const bit of data) {
+    if (bit === '0') {
+      encoded += zeroMapping[Math.floor(Math.random() * zeroMapping.length)];
+    } else if (bit === '1') {
+      encoded += oneMapping[Math.floor(Math.random() * oneMapping.length)];
     }
-    encoded += '\n'; // Add a line break after each character
   }
 
   return encoded;
-          }
+        }
